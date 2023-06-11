@@ -1,0 +1,29 @@
+name: Docker Containers Run
+
+on:
+  workflow_run:
+    workflows: [ Maven Package Jar ]
+    branches: [ production ]
+    types:
+      - completed
+
+jobs:
+  compose-up:
+    runs-on: [ prod ]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Start docker compose services
+        run: docker compose up -d --build
+        
+      - name: Wait for Java application
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:8081/health'
+          responseCode: 200
+          timeout: 120000
+          interval: 10000
+      
+      - name: Check running containers
+        run: docker ps -a
+
+

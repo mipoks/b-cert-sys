@@ -1,0 +1,139 @@
+version: "3.7"
+
+services:
+
+  dev-db:
+    container_name: cert-db
+    image: postgres:14.2
+    restart: always
+    environment:
+      - POSTGRES_USER=qwerty007
+      - POSTGRES_PASSWORD=qwerty007
+      - POSTGRES_DB=devDB
+    command: ["--autovacuum=off"]
+    ports:
+      - "5434:5432"
+    networks:
+      - app-network
+    volumes:
+      - /home/cert-forum/postgres/data:/var/lib/postgresql/data
+
+
+  dev-db-13:
+    container_name: cert-db-13
+    image: postgres:13.10
+    restart: always
+    environment:
+      - POSTGRES_USER=qwerty007
+      - POSTGRES_PASSWORD=qwerty007
+      - POSTGRES_DB=devDB
+    command: [ "--autovacuum=off" ]
+    ports:
+      - "5435:5432"
+    networks:
+      - app-network
+    volumes:
+      - /home/cert-forum/postgres/data2:/var/lib/postgresql/data
+
+  dev-redis:
+    container_name: redis-service
+    image: redis:7.0-rc-alpine
+    volumes:
+      - /home/cert-forum/redis-service/data:/data
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - app-network
+    command: redis-server --appendonly yes --replica-read-only no
+
+  dev-elastic:
+    container_name: elastic-service
+    image: elasticsearch:8.5.3
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - transport.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - ELASTIC_PASSWORD=xkDo61ZhpJj_eCohJS3f
+    networks:
+      - app-network
+#    volumes:
+#      - /home/cert-forum/elasticsearch/data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+
+
+  #   dev-kibana:
+#     container_name: kibana-service
+#     image: kibana:8.1.2
+#     links:
+#       - dev-elastic
+#     depends_on:
+#       - dev-elastic
+#     ports:
+#       - 5601:5601
+#     networks:
+#       - app-network
+
+#   dev-redisinsight:
+#     container_name: redis-insight
+#     image: redislabs/redisinsight:latest
+#     ports:
+#       - '8001:8001'
+#     volumes:
+#       - /home/cert-forum/redis-insight/data:/db
+#     networks:
+#       - app-network
+
+  dev-backend:
+    container_name: backend-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - 8081:8081
+    depends_on:
+      - dev-db
+      - dev-elastic
+      - dev-redis
+    environment:
+      - ELASTIC_HOST=host.docker.internal
+      - ELASTIC_PORT=9200
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5434
+      - DB_DATABASE=devDB
+      - DB_USERNAME=qwerty007
+      - DB_PASSWORD=qwerty007
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_HOST=host.docker.internal
+
+  dev-minio:
+    restart: always
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server --address 0.0.0.0:9000 /data
+    networks:
+      - app-network
+    volumes:
+      - /mnt/hdd/minio/data:/data
+#      - /mnt/hdd/minio/config:/root/.minio
+
+networks:
+  app-network:
+    driver: bridge

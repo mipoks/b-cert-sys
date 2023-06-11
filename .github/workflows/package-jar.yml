@@ -1,0 +1,27 @@
+name: Maven Package Jar
+
+on:
+  push:
+    branches: [ production ]
+
+jobs:
+  maven_package:
+
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: production
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v1
+      with:
+        java-version: 17
+
+    - name: Build project with Maven
+      run: mvn -B -Dmaven.test.skip=true package --file pom.xml
+
+#    - name: Change permission of volume for Elasticsearch
+#      run: sudo chown -R "1000:1000" /home/cert-forum/elasticsearch/data

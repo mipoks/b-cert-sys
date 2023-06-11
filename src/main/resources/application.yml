@@ -1,0 +1,81 @@
+bot:
+  enabled: false
+  token: 5594043244:AAH5lyws-3mjr-L4E9BmTB2agW7BMLMOxVM
+  name: Redeemer
+  path: ''
+  url: https://d83a-176-52-79-3.ngrok-free.app
+#debug: true
+use:
+  integrator: false
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        http-only: false
+        max-age: 360000
+        domain: localhost
+        secure: true
+  logging:
+    stacktrace:
+      enabled: ${LOGGING_STACKTRACE:false}
+      deep: 5
+  port: 8081
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  minio:
+    url: ${MINIO_HOST:localhost}
+    bucket: files
+    access-key: ${MINIO_ACCESS_KEY:minio}
+    secret-key: ${MINIO_SECRET_KEY:minio123}
+    secure: true
+  session:
+    store-type: redis
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_DATABASE:devDB}?ApplicationName=cert-projects&sslmode=${DB_SSL_MODE:disable}&prepareThreshold=0
+    username: ${DB_USERNAME:qwerty007}
+    password: ${DB_PASSWORD:qwerty007}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+  data:
+    elasticsearch:
+      properties:
+        host: ${ELASTIC_HOST:localhost}
+        port: ${ELASTIC_PORT:9200}
+
+  mail:
+    host: smtp.yandex.ru
+    port: 587
+    username: mipoks@yandex.ru
+    password: XXXXXXXXXXXXX
+    properties:
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.smtp.starttls.required": true
+      "mail.smtp.socketFactory.class": javax.net.ssl.SSLSocketFactory
+      "mail.debug": true
+#      mail:
+#        smtp:
+#          auth: true
+#          debug: true
+#        starttls:
+#          enable: true
+#          required: true
+
+
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: redis
+site:
+  domain: http://localhost:8081/
